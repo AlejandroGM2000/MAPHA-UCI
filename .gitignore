@@ -1,0 +1,11 @@
+# never commit data, outputs or trained models
+data/*
+!data/README.md
+output/
+*.pkl
+*.npz
+*.h5
+*.keras
+__pycache__/
+.venv/
+.env
