@@ -27,15 +27,49 @@ All parameters are defined in [`src/ahe/config.py`](src/ahe/config.py).
 
 ## Requirements
 
-Python 3.10 and the packages in [`requirements.txt`](requirements.txt):
+Python 3.10 and the packages in [`requirements.txt`](requirements.txt).
+
+First check that `python` is version 3.10 (otherwise, call the Python 3.10 executable by its full path when creating the
+environment):
+
+```bash
+python --version
+```
+
+Create and activate a virtual environment, then install the packages. Run these commands inside the repository folder.
+
+Linux / macOS:
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate          # Windows: .venv\Scripts\activate
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
+Windows, Command Prompt (cmd):
+
+```bat
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+Windows, PowerShell:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+If PowerShell reports that running scripts is disabled, allow it for the current window only with
+`Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` and activate again.
+
+Once activated, the prompt starts with `(.venv)`. In a new terminal, only the activation command is needed again.
+
 ## Usage
+
+### Synthetic example
 
 Run the whole pipeline on the synthetic example dataset (a few minutes on a laptop):
 
@@ -43,16 +77,54 @@ Run the whole pipeline on the synthetic example dataset (a few minutes on a lapt
 python run_pipeline.py --synthetic
 ```
 
-Run it on your own data:
+The synthetic tables are written to `data/synthetic/` and the results to `output/`.
+
+### Your own data
+
+Prepare the input tables in the format described in [`data/README.md`](data/README.md), then set the input and output
+folders and run the pipeline. `AHE_SPLIT_FILE` is optional: a JSON file with `train`, `val` and `test` lists of patient
+identifiers; without it, patients are split at random (70/15/15 %).
+
+Linux / macOS:
 
 ```bash
-export AHE_DATA_DIR=/path/to/input/tables      # Windows: set AHE_DATA_DIR=C:\path\to\input\tables
+export AHE_DATA_DIR=/path/to/input/tables
 export AHE_OUTPUT_DIR=/path/to/outputs
+export AHE_SPLIT_FILE=/path/to/split.json        # optional
 python run_pipeline.py
 ```
 
-Individual steps can be run with `--steps preprocess train evaluate explain`. A predefined patient split can be provided
-with `AHE_SPLIT_FILE` (JSON with `train`, `val` and `test` lists of patient identifiers).
+Windows, Command Prompt (cmd) — no spaces around `=`:
+
+```bat
+set AHE_DATA_DIR=C:\path\to\input\tables
+set AHE_OUTPUT_DIR=C:\path\to\outputs
+set AHE_SPLIT_FILE=C:\path\to\split.json
+python run_pipeline.py
+```
+
+Windows, PowerShell:
+
+```powershell
+$env:AHE_DATA_DIR = "C:\path\to\input\tables"
+$env:AHE_OUTPUT_DIR = "C:\path\to\outputs"
+$env:AHE_SPLIT_FILE = "C:\path\to\split.json"    # optional
+python run_pipeline.py
+```
+
+In cmd, omit the `AHE_SPLIT_FILE` line if no predefined split is used. These variables only last while the terminal
+window is open.
+
+With patient data, choose an output folder **outside** the repository folder, so that results derived from patient data
+are never committed by mistake.
+
+As a reference, the complete pipeline on about 4,300 patients took about 20–25 minutes on a laptop CPU (preprocessing
+≈ 8 min, training ≈ 8–15 min, evaluation and SHAP a few minutes).
+
+Individual steps can be run with `--steps preprocess train evaluate explain`.
+
+TensorFlow prints several `WARNING` and information messages (deprecations, CPU instructions, oneDNN). They are normal
+and can be ignored.
 
 ## Outputs (`AHE_OUTPUT_DIR`)
 
@@ -64,7 +136,7 @@ with `AHE_SPLIT_FILE` (JSON with `train`, `val` and `test` lists of patient iden
 | `predictions.pkl` | Predicted probabilities for the validation and test windows |
 | `results/*.csv` | Evaluation and explainability results (see the docstring of `evaluation.py`) |
 
-Nothing is written outside `AHE_OUTPUT_DIR`.
+Apart from the synthetic example dataset (`data/synthetic/`), nothing is written outside `AHE_OUTPUT_DIR`.
 
 ## Tests
 
